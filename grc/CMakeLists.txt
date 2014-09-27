@@ -18,5 +18,6 @@
 # Boston, MA 02110-1301, USA.
 
 install(FILES
-    bruninga_ax25_deframer.xml DESTINATION share/gnuradio/grc/blocks
+    bruninga_ax25_deframer.xml
+    bruninga_ax25_to_aprs.xml DESTINATION share/gnuradio/grc/blocks
 )

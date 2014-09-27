@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<block>
+  <name>ax25_to_aprs</name>
+  <key>bruninga_ax25_to_aprs</key>
+  <category>bruninga</category>
+  <import>import bruninga</import>
+  <make>bruninga.ax25_to_aprs()</make>
+  <!-- Make one 'sink' node per input. Sub-nodes:
+       * name (an identifier for the GUI)
+       * type
+       * vlen
+       * optional (set to 1 for optional inputs) -->
+  <sink>
+    <name>in</name>
+    <type>message</type>
+  </sink>
+
+  <!-- Make one 'source' node per output. Sub-nodes:
+       * name (an identifier for the GUI)
+       * type
+       * vlen
+       * optional (set to 1 for optional inputs) -->
+       <!--
+  <source>
+    <name>out</name>
+    <type></type>
+  </source>
+  -->
+</block>
