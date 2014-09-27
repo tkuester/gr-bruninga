@@ -22,6 +22,7 @@
 import sys
 import pmt
 from gnuradio import gr
+from pprint import pprint
 
 class ax25_to_aprs(gr.sync_block):
     """
@@ -40,10 +41,12 @@ class ax25_to_aprs(gr.sync_block):
     def handle_msg(self, msg):
         msg = bytearray(str(msg))
 
-        pmsg = ''
+        packet = {}
+        packet['digipeaters'] = []
 
         # TODO: Only parse the propper length of the source/dest fields
         # TODO: Parse the SSID, get to/from sorted out
+        address_count = 0
         for i in xrange(0, len(msg), 7):
             # Do we have at least 7 more bytes?
             if (i + 6) >= len(msg):
@@ -53,9 +56,35 @@ class ax25_to_aprs(gr.sync_block):
             ssid = msg[i+6]
 
             for j in xrange(6):
+                # We're going to treat the LSB as a don't care.
+                # Protocol does not specify what to do if this is a 1
                 callsign[j] = callsign[j] >> 1
 
-            pmsg += str(callsign) + '\n'
+            if address_count == 0:
+                packet['destination'] = {
+                        'callsign': str(callsign),
+                        'ssid': (ssid >> 1) & 0x0f,
+                        'repeated': (ssid & 0x80) == 0x80
+                        }
+            elif address_count == 1:
+                packet['source'] = {
+                        'callsign': str(callsign),
+                        'ssid': (ssid >> 1) & 0x0f,
+                        'repeated': (ssid & 0x80) == 0x80
+                        }
+            elif address_count < 10:
+                packet['digipeaters'].append({
+                        'callsign': str(callsign),
+                        'ssid': (ssid >> 1) & 0x0f,
+                        'repeated': (ssid & 0x80) == 0x80
+                        })
+            else:
+                # More than 10 addresses means we probably
+                # have an invalid packet, a bit got flipped somewhere
+                # TODO: Validate checksum
+                return
+
+            address_count += 1
 
             if (ssid & 0x01) == 1:
                 break
@@ -67,23 +96,21 @@ class ax25_to_aprs(gr.sync_block):
         if (i + 4) > len(msg):
             return
 
-        control = msg[i]
+        packet['control'] = msg[i]
         i += 1
-        pmsg += 'Control: ' + bin(control) + '\n'
 
-        protocol = msg[i]
+        packet['protocol'] = msg[i]
         i += 1
-        pmsg += 'Protocol: ' + bin(protocol) + '\n'
 
-        message = msg[i:-2]
-        pmsg += 'Message: ' + str(msg[i:-2]) + '\n'
+        packet['message'] = str(msg[i:-2])
 
-        checksum = msg[-2:]
-        pmsg += 'Checksum(?): ' + str(checksum).encode('hex') + '\n'
+        # TODO: Reverse checksum
+        packet['checksum'] = str(msg[-2:]).encode('hex')
 
         # TODO: Actually check the checksum
-        if control == 0x03 and protocol == 0xf0: 
+        if packet['control'] == 0x03 and packet['protocol'] == 0xf0: 
             self.count += 1
-            print pmsg
+            pprint(packet)
+            packet['raw_bytes'] = msg
             print 'Count:', self.count
             print '-'*8
