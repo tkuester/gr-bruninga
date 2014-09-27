@@ -21,6 +21,7 @@
 
 import numpy
 from gnuradio import gr
+import pmt
 from collections import deque
 
 STATE_IDLE = 0
@@ -41,6 +42,8 @@ class ax25_deframer(gr.sync_block):
         self.processing_hldc = False
         self.one_count = 0
         self.hdlc_bytes = []
+
+        self.message_port_register_out(pmt.intern('out'))
 
     def work(self, input_items, output_items):
         in0 = input_items[0]
@@ -70,6 +73,7 @@ class ax25_deframer(gr.sync_block):
 
         self.deq.append(bit)
 
+        # Keep track of consecutive 1's... state error if > 6
         if bit == 1:
             self.one_count += 1
             if self.one_count > 6:
@@ -78,21 +82,34 @@ class ax25_deframer(gr.sync_block):
         else:
             self.one_count = 0
 
+        # We're done, unless we have 8 bits to process
         if len(self.deq) < 8:
             return
 
+        # Grab the byte
         byte = self.deque_to_byte()
 
+        # If we see a framing byte
         if byte == 0x7e:
+            # Assume a valid message if we have between 19 and 330 bytes
             if len(self.hldc_bytes) >= 19 and len(self.hldc_bytes) <= 330:
-                print ''.join([chr(c) for c in self.hldc_bytes])
+                #print ''.join([chr(c) for c in self.hldc_bytes])
+                packet = ''.join([chr(c) for c in self.hldc_bytes])
+                packet = pmt.intern(packet)
+                self.message_port_pub(pmt.intern('out'), packet)
+
+            # Clear, and keep processing
+            # Remember, two packets can be back to back w/ flags
             self.deq.clear()
             self.processing_hldc = True
             self.one_count = 0
             self.hldc_bytes = []
+
+        # Assume byte is part of message, append
         else:
             self.hldc_bytes.append(self.deque_to_byte(True))
 
+        # Clear the array of bits
         self.deq.clear()
 
     def deque_to_byte(self, reverse=False):

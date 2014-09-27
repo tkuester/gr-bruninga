@@ -31,9 +31,9 @@
        * type
        * vlen
        * optional (set to 1 for optional inputs) 
+-->
   <source>
     <name>out</name>
-    <type></type>
-</source>
--->
+    <type>message</type>
+  </source>
 </block>
