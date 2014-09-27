@@ -19,10 +19,10 @@
 # Boston, MA 02110-1301, USA.
 # 
 
-import sys
+import struct
+
 import pmt
 from gnuradio import gr
-from pprint import pprint
 
 class ax25_to_aprs(gr.sync_block):
     """
@@ -42,6 +42,7 @@ class ax25_to_aprs(gr.sync_block):
         msg = bytearray(str(msg))
 
         packet = {}
+        packet['raw_bytes'] = msg
         packet['digipeaters'] = []
 
         # TODO: Only parse the propper length of the source/dest fields
@@ -62,19 +63,19 @@ class ax25_to_aprs(gr.sync_block):
 
             if address_count == 0:
                 packet['destination'] = {
-                        'callsign': str(callsign),
+                        'callsign': str(callsign).strip(),
                         'ssid': (ssid >> 1) & 0x0f,
                         'repeated': (ssid & 0x80) == 0x80
                         }
             elif address_count == 1:
                 packet['source'] = {
-                        'callsign': str(callsign),
+                        'callsign': str(callsign).strip(),
                         'ssid': (ssid >> 1) & 0x0f,
                         'repeated': (ssid & 0x80) == 0x80
                         }
             elif address_count < 10:
                 packet['digipeaters'].append({
-                        'callsign': str(callsign),
+                        'callsign': str(callsign).strip(),
                         'ssid': (ssid >> 1) & 0x0f,
                         'repeated': (ssid & 0x80) == 0x80
                         })
@@ -104,13 +105,57 @@ class ax25_to_aprs(gr.sync_block):
 
         packet['message'] = str(msg[i:-2])
 
-        # TODO: Reverse checksum
         packet['checksum'] = str(msg[-2:]).encode('hex')
+        packet['checksum_check'] = crc_check(packet)
+
+        '''
+        # TODO: Reverse checksum
+        checksum_bits = bin(msg[-2])[2:].zfill(8)
+        checksum_bits += bin(msg[-1])[2:].zfill(8)
+        checksum_bits = checksum_bits[::-1]
+
+        packet['checksum'] = 0
+        for bit in checksum_bits:
+            if bit == '1':
+                packet['checksum'] |= 0x8000
+                packet['checksum'] >>= 1
+        '''
+
 
         # TODO: Actually check the checksum
-        if packet['control'] == 0x03 and packet['protocol'] == 0xf0: 
-            self.count += 1
-            pprint(packet)
-            packet['raw_bytes'] = msg
+        if (packet['control'] & 0x03) == 0x03 and packet['protocol'] == 0xf0: 
+            if packet['checksum'] != packet['checksum_check']:
+                print 'X'*10
+                dump_packet(packet)
+                print 'X'*10
+            else:
+                dump_packet(packet)
+                self.count += 1
             print 'Count:', self.count
             print '-'*8
+
+def crc_check(packet):
+    ''' With thanks to W6KWF's excellent whitepaper '''
+    crc = 0xffff
+
+    for byte in packet['raw_bytes'][:-2]:
+        bits = bin(byte)[2:].zfill(8)
+        for i in xrange(7, -1, -1):
+            bit = 1 if bits[i] == '1' else 0
+            if (crc & 0x0001) != bit:
+                crc = (crc >> 1) ^ 0x8408
+            else:
+                crc = crc >> 1
+
+    return struct.pack('<H', (crc ^ 0xffff)).encode('hex')
+
+def dump_packet(packet):
+    ret = '%s-%d>' % (packet['source']['callsign'], packet['source']['ssid'])
+
+    for station in packet['digipeaters']:
+        ret += '%s-%d>' % (station['callsign'], station['ssid'])
+
+    ret += '%s-%d:' % (packet['destination']['callsign'], packet['destination']['ssid'])
+    ret += str(packet['message'])
+
+    print ret
