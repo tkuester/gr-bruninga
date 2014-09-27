@@ -82,13 +82,15 @@ class ax25_to_aprs(gr.sync_block):
             else:
                 # More than 10 addresses means we probably
                 # have an invalid packet, a bit got flipped somewhere
-                # TODO: Validate checksum
                 return
 
             address_count += 1
 
             if (ssid & 0x01) == 1:
                 break
+
+        if address_count < 2:
+            return
 
         i += 7
 
@@ -108,21 +110,6 @@ class ax25_to_aprs(gr.sync_block):
         packet['checksum'] = str(msg[-2:]).encode('hex')
         packet['checksum_check'] = crc_check(packet)
 
-        '''
-        # TODO: Reverse checksum
-        checksum_bits = bin(msg[-2])[2:].zfill(8)
-        checksum_bits += bin(msg[-1])[2:].zfill(8)
-        checksum_bits = checksum_bits[::-1]
-
-        packet['checksum'] = 0
-        for bit in checksum_bits:
-            if bit == '1':
-                packet['checksum'] |= 0x8000
-                packet['checksum'] >>= 1
-        '''
-
-
-        # TODO: Actually check the checksum
         if (packet['control'] & 0x03) == 0x03 and packet['protocol'] == 0xf0: 
             if packet['checksum'] != packet['checksum_check']:
                 print 'X'*10
