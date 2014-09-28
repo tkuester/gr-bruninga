@@ -37,6 +37,7 @@ class ax25_to_aprs(gr.sync_block):
         self.message_port_register_in(pmt.intern('in'))
         self.set_msg_handler(pmt.intern('in'), self.handle_msg)
         self.count = 0
+        self.dropped = 0
 
     def handle_msg(self, msg):
         msg = bytearray(str(msg))
@@ -113,12 +114,12 @@ class ax25_to_aprs(gr.sync_block):
         if (packet['control'] & 0x03) == 0x03 and packet['protocol'] == 0xf0: 
             if packet['checksum'] != packet['checksum_check']:
                 print 'X'*10
-                dump_packet(packet)
-                print 'X'*10
+                self.dropped += 1
             else:
                 dump_packet(packet)
                 self.count += 1
             print 'Count:', self.count
+            print 'Dropped (Checksum):', self.dropped
             print '-'*8
 
 def crc_check(packet):
