@@ -22,5 +22,5 @@
 ########################################################################
 install(FILES
     api.h
-    DESTINATION include/bruninga
+    direwolf_agc.h DESTINATION include/bruninga
 )

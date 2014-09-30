@@ -19,5 +19,6 @@
 
 install(FILES
     bruninga_ax25_deframer.xml
-    bruninga_ax25_to_aprs.xml DESTINATION share/gnuradio/grc/blocks
+    bruninga_ax25_to_aprs.xml
+    bruninga_direwolf_agc.xml DESTINATION share/gnuradio/grc/blocks
 )

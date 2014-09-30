@@ -26,6 +26,7 @@ include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
 list(APPEND bruninga_sources
+    direwolf_agc_impl.cc
 )
 
 set(bruninga_sources "${bruninga_sources}" PARENT_SCOPE)
