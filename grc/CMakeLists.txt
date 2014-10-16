@@ -16,9 +16,7 @@
 # along with GNU Radio; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-
 install(FILES
-    bruninga_ax25_deframer.xml
     bruninga_ax25_to_aprs.xml
     bruninga_direwolf_agc.xml DESTINATION share/gnuradio/grc/blocks
 )

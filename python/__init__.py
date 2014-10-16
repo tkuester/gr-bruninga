@@ -31,7 +31,7 @@ except ImportError:
 	pass
 
 # import any pure python here
-from ax25_deframer import ax25_deframer
+
 from ax25_to_aprs import ax25_to_aprs
 
 #

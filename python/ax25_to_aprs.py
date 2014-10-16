@@ -40,7 +40,13 @@ class ax25_to_aprs(gr.sync_block):
         self.dropped = 0
 
     def handle_msg(self, msg):
-        msg = bytearray(str(msg))
+        msg = pmt.pmt_to_python.pmt_to_python(msg)
+        if not isinstance(msg, tuple):
+            return
+        if len(msg) != 2:
+            return
+
+        msg = bytearray(msg[1])
 
         packet = {}
         packet['raw_bytes'] = msg
@@ -52,6 +58,7 @@ class ax25_to_aprs(gr.sync_block):
         for i in xrange(0, len(msg), 7):
             # Do we have at least 7 more bytes?
             if (i + 6) >= len(msg):
+                self.dropped += 1
                 return
 
             callsign = msg[i:i+6]
@@ -83,6 +90,7 @@ class ax25_to_aprs(gr.sync_block):
             else:
                 # More than 10 addresses means we probably
                 # have an invalid packet, a bit got flipped somewhere
+                self.dropped += 1
                 return
 
             address_count += 1
@@ -91,13 +99,14 @@ class ax25_to_aprs(gr.sync_block):
                 break
 
         if address_count < 2:
+            self.dropped += 1
             return
 
         i += 7
 
-        # We need at least 4 more bytes, control, protocol, and
-        # the CRC. If we don't have that, we gotta stop
-        if (i + 4) > len(msg):
+        # We need at least 2 more bytes, control, and protocol
+        # If we don't have that, we gotta stop
+        if (i + 2) > len(msg):
             return
 
         packet['control'] = msg[i]
@@ -106,36 +115,16 @@ class ax25_to_aprs(gr.sync_block):
         packet['protocol'] = msg[i]
         i += 1
 
-        packet['message'] = str(msg[i:-2])
-
-        packet['checksum'] = str(msg[-2:]).encode('hex')
-        packet['checksum_check'] = crc_check(packet)
+        packet['message'] = str(msg[i:])
 
         if (packet['control'] & 0x03) == 0x03 and packet['protocol'] == 0xf0: 
-            if packet['checksum'] != packet['checksum_check']:
-                print 'X'*10
-                self.dropped += 1
-            else:
-                dump_packet(packet)
-                self.count += 1
+            dump_packet(packet)
+            self.count += 1
             print 'Count:', self.count
-            print 'Dropped (Checksum):', self.dropped
+            print 'Dropped:', self.dropped
             print '-'*8
-
-def crc_check(packet):
-    ''' With thanks to W6KWF's excellent whitepaper '''
-    crc = 0xffff
-
-    for byte in packet['raw_bytes'][:-2]:
-        bits = bin(byte)[2:].zfill(8)
-        for i in xrange(7, -1, -1):
-            bit = 1 if bits[i] == '1' else 0
-            if (crc & 0x0001) != bit:
-                crc = (crc >> 1) ^ 0x8408
-            else:
-                crc = crc >> 1
-
-    return struct.pack('<H', (crc ^ 0xffff)).encode('hex')
+        else:
+            self.dropped += 1
 
 def dump_packet(packet):
     ret = '%s-%d>' % (packet['source']['callsign'], packet['source']['ssid'])
