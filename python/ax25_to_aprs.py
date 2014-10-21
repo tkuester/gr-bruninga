@@ -23,6 +23,7 @@ import struct
 
 import pmt
 from gnuradio import gr
+from datetime import datetime
 
 class ax25_to_aprs(gr.sync_block):
     """
@@ -39,14 +40,14 @@ class ax25_to_aprs(gr.sync_block):
         self.count = 0
         self.dropped = 0
 
-    def handle_msg(self, msg):
-        msg = pmt.pmt_to_python.pmt_to_python(msg)
-        if not isinstance(msg, tuple):
+    def handle_msg(self, msg_pmt):
+        msg_pmt = pmt.pmt_to_python.pmt_to_python(msg)
+        if not isinstance(msg_pmt, tuple):
             return
         if len(msg) != 2:
             return
 
-        msg = bytearray(msg[1])
+        msg = bytearray(msg_pmt[1])
 
         packet = {}
         packet['raw_bytes'] = msg
@@ -116,6 +117,7 @@ class ax25_to_aprs(gr.sync_block):
         i += 1
 
         packet['message'] = str(msg[i:])
+        packet['timestamp'] = datetime.now()
 
         if (packet['control'] & 0x03) == 0x03 and packet['protocol'] == 0xf0: 
             dump_packet(packet)
