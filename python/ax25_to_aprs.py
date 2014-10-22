@@ -25,6 +25,10 @@ import pmt
 from gnuradio import gr
 from datetime import datetime
 
+import json
+from . import packet
+from pprint import pprint
+
 class ax25_to_aprs(gr.sync_block):
     """
     docstring for block ax25_to_aprs
@@ -41,100 +45,24 @@ class ax25_to_aprs(gr.sync_block):
         self.dropped = 0
 
     def handle_msg(self, msg_pmt):
-        msg_pmt = pmt.pmt_to_python.pmt_to_python(msg)
+        msg_pmt = pmt.pmt_to_python.pmt_to_python(msg_pmt)
         if not isinstance(msg_pmt, tuple):
             return
-        if len(msg) != 2:
+        if len(msg_pmt) != 2:
             return
 
         msg = bytearray(msg_pmt[1])
 
-        packet = {}
-        packet['raw_bytes'] = msg
-        packet['digipeaters'] = []
+        try:
+            pkt = packet.from_bytes(msg)
+            packet.dump(pkt)
 
-        # TODO: Only parse the propper length of the source/dest fields
-        # TODO: Parse the SSID, get to/from sorted out
-        address_count = 0
-        for i in xrange(0, len(msg), 7):
-            # Do we have at least 7 more bytes?
-            if (i + 6) >= len(msg):
-                self.dropped += 1
-                return
-
-            callsign = msg[i:i+6]
-            ssid = msg[i+6]
-
-            for j in xrange(6):
-                # We're going to treat the LSB as a don't care.
-                # Protocol does not specify what to do if this is a 1
-                callsign[j] = callsign[j] >> 1
-
-            if address_count == 0:
-                packet['destination'] = {
-                        'callsign': str(callsign).strip(),
-                        'ssid': (ssid >> 1) & 0x0f,
-                        'repeated': (ssid & 0x80) == 0x80
-                        }
-            elif address_count == 1:
-                packet['source'] = {
-                        'callsign': str(callsign).strip(),
-                        'ssid': (ssid >> 1) & 0x0f,
-                        'repeated': (ssid & 0x80) == 0x80
-                        }
-            elif address_count < 10:
-                packet['digipeaters'].append({
-                        'callsign': str(callsign).strip(),
-                        'ssid': (ssid >> 1) & 0x0f,
-                        'repeated': (ssid & 0x80) == 0x80
-                        })
-            else:
-                # More than 10 addresses means we probably
-                # have an invalid packet, a bit got flipped somewhere
-                self.dropped += 1
-                return
-
-            address_count += 1
-
-            if (ssid & 0x01) == 1:
-                break
-
-        if address_count < 2:
-            self.dropped += 1
-            return
-
-        i += 7
-
-        # We need at least 2 more bytes, control, and protocol
-        # If we don't have that, we gotta stop
-        if (i + 2) > len(msg):
-            return
-
-        packet['control'] = msg[i]
-        i += 1
-
-        packet['protocol'] = msg[i]
-        i += 1
-
-        packet['message'] = str(msg[i:])
-        packet['timestamp'] = datetime.now()
-
-        if (packet['control'] & 0x03) == 0x03 and packet['protocol'] == 0xf0: 
-            dump_packet(packet)
-            self.count += 1
-            print 'Count:', self.count
-            print 'Dropped:', self.dropped
-            print '-'*8
-        else:
+            if pkt.control == 0x03 and pkt.protocol_id == 0xf0:
+                self.count += 1
+        except ValueError as e:
+            print e
             self.dropped += 1
 
-def dump_packet(packet):
-    ret = '%s-%d>' % (packet['source']['callsign'], packet['source']['ssid'])
-
-    for station in packet['digipeaters']:
-        ret += '%s-%d>' % (station['callsign'], station['ssid'])
-
-    ret += '%s-%d:' % (packet['destination']['callsign'], packet['destination']['ssid'])
-    ret += str(packet['message'])
-
-    print ret
+        print 'Count:', self.count
+        print 'Dropped:', self.dropped
+        print '-'*8

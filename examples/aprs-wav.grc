@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='ASCII'?>
 <?grc format='1' created='3.7.5'?>
 <flow_graph>
-  <timestamp>Mon Oct 20 17:25:25 2014</timestamp>
+  <timestamp>Wed Oct 22 02:45:41 2014</timestamp>
   <block>
     <key>options</key>
     <param>
@@ -30,7 +30,7 @@
     </param>
     <param>
       <key>generate_options</key>
-      <value>no_gui</value>
+      <value>qt_gui</value>
     </param>
     <param>
       <key>category</key>
@@ -77,7 +77,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>0.3</value>
+      <value>0.45</value>
     </param>
     <param>
       <key>alias</key>
@@ -86,33 +86,6 @@
     <param>
       <key>_coordinate</key>
       <value>(304, 483)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>id</key>
-      <value>window_len</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>samp_rate/1200*2</value>
-    </param>
-    <param>
-      <key>alias</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(528, 91)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -275,6 +248,33 @@
     <param>
       <key>_coordinate</key>
       <value>(496, 11)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>id</key>
+      <value>window_len</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>samp_rate/1200*2</value>
+    </param>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(528, 91)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1161,7 +1161,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/home/tkuester/Downloads/TNC_Test/basename01.wav</value>
+      <value>/home/tkuester/Downloads/TNC_Test/basename02.wav</value>
     </param>
     <param>
       <key>repeat</key>
