@@ -1,6 +1,19 @@
 from datetime import datetime
 
+'''
+A library of functions and objects for manipulating AX.25 packets.
+At the moment, it was mostly designed to handle APRS UI frames, so
+further functionality has not been tested.
+'''
+
 class AX25Address(object):
+    '''
+    An object representing an AX.25 address. You can print this object to
+    the screen, or cast it to a string.
+
+    If the SSID is zero, the callsign will print as 'XXdYYY'. Otherwise,
+    the SSID will appear as '-%d' at the end.
+    '''
     def __init__(self):
         self.callsign = None
         self.ssid = None
@@ -18,6 +31,9 @@ class AX25Address(object):
                 self.ssid)
 
 class AX25Packet(object):
+    '''
+    An object representing an AX.25 packet.
+    '''
     def __init__(self):
         self.src = None
         self.dest = None
@@ -38,6 +54,7 @@ class AX25Packet(object):
                 (self.src, self.dest, self.frame_type, len(self.info))
 
 def bytes_to_address(array):
+    ''' Converts an array of 7 bytes into an AX25Address object '''
     addr = AX25Address()
     addr.callsign = ''.join([chr(d >> 1) for d in array[0:5]]).strip()
     addr.ssid = (array[6] >> 1) & 0x0f
@@ -49,6 +66,11 @@ def bytes_to_address(array):
     return (last, addr)
 
 def from_bytes(array, extended=False):
+    '''
+    Builds an AX25Packet from a bytearray.
+
+    modulo 128 extended packets are not yet implemented.
+    '''
     if not isinstance(array, bytearray):
         raise TypeError("Function takes bytearray")
 
@@ -121,9 +143,16 @@ def from_bytes(array, extended=False):
     return packet
     
 def to_bytes(packet):
-    pass
+    raise NotImplementedError()
 
 def dump(packet):
+    '''
+    Returns a string representing the packet.
+
+    Format:
+        SRC>DEST,RPT1,RPT2:INFO
+    '''
+
     ret = '%s>%s' % (packet.src, packet.dest)
 
     for station in packet.digipeaters:
@@ -131,5 +160,4 @@ def dump(packet):
 
     ret += ':%s' % packet.info
 
-    print ret
-
+    return ret

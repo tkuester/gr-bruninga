@@ -25,13 +25,25 @@ import pmt
 from gnuradio import gr
 from datetime import datetime
 
-import json
 from . import packet
-from pprint import pprint
+
+# TODO: Rename this to hdlc_to_ax25
 
 class ax25_to_aprs(gr.sync_block):
     """
-    docstring for block ax25_to_aprs
+    Converts an array of bytes into a AX25Packet object.
+
+    Connect to the "HDLC Deframer", or a block which emits a PMT tuple of
+    (None, bytearray)
+
+    This module maintains statistics of packets seen in .count and .dropped
+
+    .dropped counts the packets that failed do unpack due to state machine
+    violations. Since the HDLC Deframer block silently drops packets that fail
+    to match the checksum, we are unable to know how many packets failed.
+
+    .count counts the number of APRS packets received. (For now, this library
+    is only focusing on APRS)
     """
     def __init__(self):
         gr.sync_block.__init__(self,
@@ -55,7 +67,8 @@ class ax25_to_aprs(gr.sync_block):
 
         try:
             pkt = packet.from_bytes(msg)
-            packet.dump(pkt)
+            # TODO: Forward this packet on to other modules
+            print packet.dump(pkt)
 
             if pkt.control == 0x03 and pkt.protocol_id == 0xf0:
                 self.count += 1

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <block>
-  <name>direwolf_agc</name>
+  <name>Direwolf AGC</name>
   <key>bruninga_direwolf_agc</key>
   <category>bruninga</category>
   <import>import bruninga</import>
@@ -11,13 +11,15 @@
        * key (makes the value accessible as $keyname, e.g. in the make node)
        * type -->
   <param>
-      <name>Attack</name>
+    <name>Attack</name>
     <key>attack</key>
+    <value>attack</value>
     <type>float</type>
   </param>
   <param>
-      <name>Decay</name>
+    <name>Decay</name>
     <key>decay</key>
+    <value>attack</value>
     <type>float</type>
   </param>
 

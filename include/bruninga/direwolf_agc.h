@@ -29,7 +29,8 @@ namespace gr {
   namespace bruninga {
 
     /*!
-     * \brief <+description of block+>
+     * \brief A simplified version of the AGC found in WB2OSZ's direwolf
+     *
      * \ingroup bruninga
      *
      */
@@ -41,10 +42,29 @@ namespace gr {
       /*!
        * \brief Return a shared_ptr to a new instance of bruninga::direwolf_agc.
        *
-       * To avoid accidental use of raw pointers, bruninga::direwolf_agc's
-       * constructor is in a private implementation
-       * class. bruninga::direwolf_agc::make is the public interface for
-       * creating new instances.
+       * Each radio's FM pre-emphasis filter is unique. As such, this results
+       * in the amplitudes of each tone varying transmission to transmisison.
+       * This block forms a "moving average" between the peaks and valleys,
+       * and scales the waveform appropriately.
+       *
+       * The algorithm is simple. If we see a "peak" (or valley) beyond the
+       * current average, we do:
+       *     new_peak = (sample * attack) + (old_peak * (1 - attack))
+       *
+       * Therefore, setting the attack parameter to "1.0" means the average
+       * instantly becomes the sample value when greater than the current
+       * average.
+       *
+       * If the sample is within the current average, we replace "attack" with
+       * decay.
+       *
+       * The peak and valley waveforms are sent out to (optional) ports, which
+       * can be plotted alongside the input waveform for confirmation of
+       * parameter choice.
+       *
+       * Attack and decay are specified in floating point numbers between
+       * 0.0 and 1.0. It is possible to set the numbers outside this range,
+       * although behavior will likely be detrimental.
        */
       static sptr make(float attack, float decay);
     };

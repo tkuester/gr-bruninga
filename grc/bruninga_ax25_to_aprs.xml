@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <block>
-  <name>ax25_to_aprs</name>
+  <name>HDLC to AX25</name>
   <key>bruninga_ax25_to_aprs</key>
   <category>bruninga</category>
   <import>import bruninga</import>
