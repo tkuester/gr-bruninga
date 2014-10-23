@@ -19,6 +19,7 @@
 # Boston, MA 02110-1301, USA.
 # 
 
+import os, pty
 import struct
 
 import pmt
@@ -51,6 +52,15 @@ class ax25_to_aprs(gr.sync_block):
                                in_sig=None,
                                out_sig=None)
 
+        (self.pty_master, self.pty_slave) = pty.openpty()
+        tty = os.ttyname(self.pty_slave)
+
+        if os.path.exists('/tmp/kiss_pty'):
+            os.unlink('/tmp/kiss_pty')
+        os.symlink(tty, '/tmp/kiss_pty')
+
+        print 'KISS PTY is: /tmp/kiss_pty (%s)' % os.ttyname(self.pty_slave)
+
         self.message_port_register_in(pmt.intern('in'))
         self.set_msg_handler(pmt.intern('in'), self.handle_msg)
         self.count = 0
@@ -71,6 +81,7 @@ class ax25_to_aprs(gr.sync_block):
             print packet.dump(pkt)
 
             if pkt.control == 0x03 and pkt.protocol_id == 0xf0:
+                os.write(self.pty_master, packet.kiss_wrap_bytes(msg))
                 self.count += 1
         except ValueError as e:
             print e
@@ -79,3 +90,14 @@ class ax25_to_aprs(gr.sync_block):
         print 'Count:', self.count
         print 'Dropped:', self.dropped
         print '-'*8
+
+    def stop(self):
+        print 'Closing PTYs'
+        os.close(self.pty_master)
+        os.close(self.pty_slave)
+        try:
+            os.unlink('/tmp/kiss_pty')
+        except OSError:
+            pass
+
+        gr.sync_block.stop(self)

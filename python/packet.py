@@ -53,6 +53,25 @@ class AX25Packet(object):
         return '<AX25Packet(src=%s, dest=%s, frame_type=%s, len=%d)>' % \
                 (self.src, self.dest, self.frame_type, len(self.info))
 
+def kiss_wrap_bytes(array):
+    out = bytearray()
+    out.append(0xc0)
+    out.append(0x00)
+    
+    for bite in array:
+        if bite == 0xc0:
+            out.append(0xdb)
+            out.append(0xdc)
+        elif bite == 0xdb:
+            out.append(0xdb)
+            out.append(0xdd)
+        else:
+            out.append(bite)
+
+    out.append(0xc0)
+
+    return out
+
 def bytes_to_address(array):
     ''' Converts an array of 7 bytes into an AX25Address object '''
     addr = AX25Address()
