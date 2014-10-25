@@ -1,4 +1,5 @@
 from datetime import datetime
+import struct
 
 '''
 A library of functions and objects for manipulating AX.25 packets.
@@ -89,6 +90,51 @@ class AX25Packet(object):
         array += bytearray(self.info)
 
         return array
+
+    def kiss_wrap(self):
+        return kiss_wrap_bytes(self.to_bytes())
+
+    def checksum(self):
+        ''' With thanks to W6KWF's excellent whitepaper '''
+        crc = 0xffff
+
+        for byte in self.to_bytes():
+            # Byte to bits: bin returns 0bXXXXXXX
+            bits = bin(byte)[2:].zfill(8)
+
+            # Walk through bits (as string) backwards
+            for i in xrange(7, -1, -1):
+                bit = 1 if bits[i] == '1' else 0
+                if (crc & 0x0001) != bit:
+                    crc = (crc >> 1) ^ 0x8408
+                else:
+                    crc = crc >> 1
+
+        return bytearray(struct.pack('<H', (crc ^ 0xffff)))
+
+    def hdlc_wrap(self, preamble_count=1, trailer_count=1):
+        out = ''
+        pkt = self.to_bytes()
+        csum = self.checksum()
+
+        for byte in pkt:
+            # Byte to bits, reverse
+            out += bin(byte)[2:].zfill(8)[::-1]
+
+        for byte in csum:
+            out += bin(byte)[2:].zfill(8)[::-1]
+
+        ''' Bit stuffing '''
+        while True:
+            new = out.replace('111111', '1111101', 1)
+            if out == new:
+                break
+            out = new
+
+        out = ('01111110' * preamble_count) + out
+        out += ('01111110' * trailer_count)
+
+        return [0 if c == '0' else 1 for c in out]
 
 def kiss_wrap_bytes(array):
     out = bytearray()
