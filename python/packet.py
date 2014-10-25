@@ -113,15 +113,13 @@ class AX25Packet(object):
         return bytearray(struct.pack('<H', (crc ^ 0xffff)))
 
     def hdlc_wrap(self, preamble_count=1, trailer_count=1):
+        # TODO: Add clock recovery at beginning
         out = ''
         pkt = self.to_bytes()
         csum = self.checksum()
 
-        for byte in pkt:
+        for byte in (pkt + csum):
             # Byte to bits, reverse
-            out += bin(byte)[2:].zfill(8)[::-1]
-
-        for byte in csum:
             out += bin(byte)[2:].zfill(8)[::-1]
 
         ''' Bit stuffing '''
@@ -166,6 +164,27 @@ def bytes_to_address(array):
     last = True if (array[6] & 0x01) else False
     
     return (last, addr)
+
+def string_to_address(string):
+    if '-' in string:
+        try:
+            (cs, ssid) = src.split('-')
+            ssid = int(ssid)
+        except ValueError:
+            raise ValueError("Bad callsign format")
+    else:
+        cs = string
+        ssid = 0
+
+    if len(cs) == 0 or len(cs) > 6 or ssid < 0 or ssid > 16:
+        raise ValueError("Bad callsign format")
+
+    ret = AX25Address()
+    ret.callsign = cs
+    ret.ssid = ssid
+    
+    return ret
+ 
 
 def from_bytes(array, extended=False):
     '''

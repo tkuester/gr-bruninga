@@ -18,5 +18,6 @@
 # Boston, MA 02110-1301, USA.
 install(FILES
     bruninga_ax25_to_aprs.xml
-    bruninga_direwolf_agc.xml DESTINATION share/gnuradio/grc/blocks
+    bruninga_direwolf_agc.xml
+    bruninga_aprs_gen.xml DESTINATION share/gnuradio/grc/blocks
 )
