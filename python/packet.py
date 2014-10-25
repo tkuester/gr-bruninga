@@ -30,13 +30,36 @@ class AX25Address(object):
         return '<AX25Address(callsign=%s, ssid=%d)>' % (self.callsign,
                 self.ssid)
 
+    def to_bytes(self, last_addr=False, ch_bit=None):
+        if (
+                self.callsign is None
+                or not isinstance(self.ssid, int)
+           ):
+            raise ValueError("Address fields not populated!")
+
+        # Pad callsign with spaces to 6 chars
+        padded_cs = '%-6s' % self.callsign
+
+        array = bytearray([ord(c) << 1 for c in padded_cs])
+
+        last_byte = self.ssid << 1
+
+        if last_addr:
+            last_byte |= 1
+
+        if (ch_bit is None and self.ch_bit) or ch_bit:
+            last_byte |= 0x80
+
+        array.append(last_byte)
+        return array
+
 class AX25Packet(object):
     '''
     An object representing an AX.25 packet.
     '''
     def __init__(self):
-        self.src = None
         self.dest = None
+        self.src = None
         self.digipeaters = []
         self.control = None
         self.frame_type = None
@@ -52,6 +75,20 @@ class AX25Packet(object):
     def __repr__(self):
         return '<AX25Packet(src=%s, dest=%s, frame_type=%s, len=%d)>' % \
                 (self.src, self.dest, self.frame_type, len(self.info))
+
+    def to_bytes(self):
+        array = bytearray()
+        array += self.dest.to_bytes()
+        array += self.src.to_bytes(last_addr=(len(self.digipeaters) == 0))
+        
+        for i, dptr in enumerate(self.digipeaters):
+            array += dptr.to_bytes(last_addr=(len(self.digipeaters) == (i+1)))
+
+        # TODO: Handle various build conditions
+        array += bytearray([self.control, self.protocol_id])
+        array += bytearray(self.info)
+
+        return array
 
 def kiss_wrap_bytes(array):
     out = bytearray()
@@ -75,7 +112,7 @@ def kiss_wrap_bytes(array):
 def bytes_to_address(array):
     ''' Converts an array of 7 bytes into an AX25Address object '''
     addr = AX25Address()
-    addr.callsign = ''.join([chr(d >> 1) for d in array[0:5]]).strip()
+    addr.callsign = ''.join([chr(d >> 1) for d in array[0:6]]).strip()
     addr.ssid = (array[6] >> 1) & 0x0f
     addr.reserved = (array[6] >> 5) & 0x03
     addr.ch_bit = (array[6] >> 7) & 0x01
@@ -161,9 +198,6 @@ def from_bytes(array, extended=False):
 
     return packet
     
-def to_bytes(packet):
-    raise NotImplementedError()
-
 def dump(packet):
     '''
     Returns a string representing the packet.
