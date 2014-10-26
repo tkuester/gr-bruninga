@@ -3,4 +3,4 @@ build
 *.swp
 top_block.py
 .unittests
-
+examples/*.py

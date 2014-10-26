@@ -132,7 +132,12 @@ class AX25Packet(object):
         out = ('01111110' * preamble_count) + out
         out += ('01111110' * trailer_count)
 
-        return [0 if c == '0' else 1 for c in out]
+        # Invert data, differentially encode
+        out = [1 if c == '0' else 0 for c in out]
+        for i in xrange(1, len(out) - 1):
+            out[i] = out[i] ^ out[i-1]
+
+        return [((bit * 1000.0) + 1200) for bit in out]
 
 def kiss_wrap_bytes(array):
     out = bytearray()

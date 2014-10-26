@@ -33,7 +33,7 @@ class aprs_gen(gr.sync_block):
         gr.sync_block.__init__(self,
             name="aprs_gen",
             in_sig=None,
-            out_sig=[numpy.byte])
+            out_sig=[numpy.float32])
 
         self.src = packet.string_to_address(src)
         self.dest = packet.string_to_address(dest)
@@ -69,19 +69,22 @@ class aprs_gen(gr.sync_block):
             p.info = msg
 
             self.outbox.put(p)
-            print 'Recv', p
+            print 'Recieved message: ', p
 
     def work(self, input_items, output_items):
         out = output_items[0]
 
         if self.active_msg is None:
             if self.outbox.empty():
-                return 0
+                out[0] = 0
+                return 1
 
+            print 'Got a message'
             self.active_msg = self.outbox.get()
             self.active_idx = 0
             self.active_msg = self.active_msg.hdlc_wrap(self.preamble_cnt, 10)
 
+        print 'Building output data...'
         out_idx = 0
         while (
                 out_idx < len(out) and
@@ -90,8 +93,10 @@ class aprs_gen(gr.sync_block):
             out[out_idx] = self.active_msg[self.active_idx]
             self.active_idx += 1
             out_idx += 1
+        print 'Wrote %d / %d bytes' % (out_idx, len(out))
         
         if self.active_idx >= len(self.active_msg):
+            print 'Done with message, removing from system'
             self.active_msg = None
 
         return out_idx
