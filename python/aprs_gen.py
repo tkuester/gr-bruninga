@@ -23,17 +23,17 @@ import numpy
 from gnuradio import gr
 from bruninga import packet
 import pmt
-import Queue
+import pickle
 
 class aprs_gen(gr.sync_block):
     """
     docstring for block aprs_gen
     """
-    def __init__(self, src, dest, via, preamble_len_ms):
+    def __init__(self, src, dest, via):
         gr.sync_block.__init__(self,
             name="aprs_gen",
             in_sig=None,
-            out_sig=[numpy.float32])
+            out_sig=None)
 
         self.src = packet.string_to_address(src)
         self.dest = packet.string_to_address(dest)
@@ -45,58 +45,30 @@ class aprs_gen(gr.sync_block):
             for v in via:
                 self.via.append(packet.string_to_address(v))
 
-        self.preamble_cnt = int(numpy.ceil(preamble_len_ms / (8.0 / 1200 *
-            1000))) + 1
-
-        self.outbox = Queue.Queue()
-        self.active_msg = None
-        self.active_idx = 0
-
         self.message_port_register_in(pmt.intern('in'))
         self.set_msg_handler(pmt.intern('in'), self.handle_msg)
 
+        self.message_port_register_out(pmt.intern('out'))
+
     def handle_msg(self, msg_pmt):
         msg = pmt.to_python(msg_pmt)
-        if isinstance(msg, tuple) and len(msg) == 2:
-            msg = str(bytearray(msg[1]))[:-1]
+        if not (isinstance(msg, tuple) and len(msg) == 2):
+            print 'Expected tuple of (None, str)'
+            return
 
-            p = packet.AX25Packet()
-            p.src = self.src
-            p.dest = self.dest
-            p.digipeaters = self.via
-            p.control = 0x03
-            p.protocol_id = 0xf0
-            p.info = msg
+        msg = str(bytearray(msg[1]))[:-1]
 
-            self.outbox.put(p)
-            print 'Recieved message: ', p
+        p = packet.AX25Packet()
+        p.src = self.src
+        p.dest = self.dest
+        p.digipeaters = self.via
+        p.control = 0x03
+        p.protocol_id = 0xf0
+        p.info = msg
+
+        out = (None, pickle.dumps(p))
+        self.message_port_pub(pmt.intern('out'), pmt.to_pmt(out))
 
     def work(self, input_items, output_items):
-        out = output_items[0]
-
-        if self.active_msg is None:
-            if self.outbox.empty():
-                out[0] = 0
-                return 1
-
-            print 'Got a message'
-            self.active_msg = self.outbox.get()
-            self.active_idx = 0
-            self.active_msg = self.active_msg.hdlc_wrap(self.preamble_cnt, 10)
-
-        print 'Building output data...'
-        out_idx = 0
-        while (
-                out_idx < len(out) and
-                self.active_idx < len(self.active_msg)
-              ):
-            out[out_idx] = self.active_msg[self.active_idx]
-            self.active_idx += 1
-            out_idx += 1
-        print 'Wrote %d / %d bytes' % (out_idx, len(out))
-        
-        if self.active_idx >= len(self.active_msg):
-            print 'Done with message, removing from system'
-            self.active_msg = None
-
-        return out_idx
+        print 'No call'
+        return 0

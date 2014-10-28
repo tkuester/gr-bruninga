@@ -4,7 +4,7 @@
   <key>bruninga_aprs_gen</key>
   <category>bruninga</category>
   <import>import bruninga</import>
-  <make>bruninga.aprs_gen($src, $dest, $via, $preamble_len_ms)</make>
+  <make>bruninga.aprs_gen($src, $dest, $via)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name
@@ -28,13 +28,6 @@
     <type>raw</type>
   </param>
 
-  <param>
-    <name>Preamble Len (ms)</name>
-    <key>preamble_len_ms</key>
-    <value>100</value>
-    <type>int</type>
-  </param>
-
   <!-- Make one 'sink' node per input. Sub-nodes:
        * name (an identifier for the GUI)
        * type
@@ -52,6 +45,6 @@
        * optional (set to 1 for optional inputs) -->
   <source>
     <name>out</name>
-    <type>float</type>
+    <type>message</type>
   </source>
 </block>

@@ -118,17 +118,34 @@ class AX25Packet(object):
         pkt = self.to_bytes()
         csum = self.checksum()
 
+        # Bytes to bits (LSB first)
         for byte in (pkt + csum):
-            # Byte to bits, reverse
+            # bin() outputs 0bxxxxx, msb first
+            # - strip off the 0b (using [2:])
+            # - zero pad out to 8 bits (using .zfill)
+            # - reverse string to be LSB first (with [::-1])
             out += bin(byte)[2:].zfill(8)[::-1]
 
-        ''' Bit stuffing '''
-        while True:
-            new = out.replace('111111', '1111101', 1)
-            if out == new:
-                break
-            out = new
+        # Bit stuffing
+        unstuffed = out
+        stuffed = ''
+        
+        # Bit stuffing
+        one_count = 0
+        for bit in unstuffed:
+            stuffed += bit
+            if bit == '1':
+                one_count += 1
+            else:
+                one_count = 0
 
+            if one_count == 5:
+                stuffed += '0'
+                one_count = 0
+
+        out = stuffed
+
+        # Preamble
         out = ('01111110' * preamble_count) + out
         out += ('01111110' * trailer_count)
 
@@ -137,7 +154,7 @@ class AX25Packet(object):
         for i in xrange(1, len(out) - 1):
             out[i] = out[i] ^ out[i-1]
 
-        return [((bit * 1000.0) + 1200) for bit in out]
+        return out
 
 def kiss_wrap_bytes(array):
     out = bytearray()

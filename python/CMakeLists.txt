@@ -33,7 +33,8 @@ GR_PYTHON_INSTALL(
     __init__.py
     packet.py
     ax25_to_aprs.py
-    aprs_gen.py DESTINATION ${GR_PYTHON_DIR}/bruninga
+    aprs_gen.py
+    ax25_fsk_mod.py DESTINATION ${GR_PYTHON_DIR}/bruninga
 )
 
 ########################################################################

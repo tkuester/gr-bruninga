@@ -19,5 +19,6 @@
 install(FILES
     bruninga_ax25_to_aprs.xml
     bruninga_direwolf_agc.xml
-    bruninga_aprs_gen.xml DESTINATION share/gnuradio/grc/blocks
+    bruninga_aprs_gen.xml
+    bruninga_ax25_fsk_mod.xml DESTINATION share/gnuradio/grc/blocks
 )
