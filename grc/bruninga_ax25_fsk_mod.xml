@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
 <block>
-  <name>ax25_fsk_mod</name>
+  <name>AX.25 FSK Modulator</name>
   <key>bruninga_ax25_fsk_mod</key>
   <category>bruninga</category>
   <import>import bruninga</import>
-  <make>bruninga.ax25_fsk_mod($samp_rate, $preamble_len_ms, $postamble_count, $mark_freq, $space_freq, $baud_rate)</make>
+  <make>bruninga.ax25_fsk_mod($samp_rate, $preamble_len_ms, $flag_count, $mark_freq, $space_freq, $baud_rate)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name
        * key (makes the value accessible as $keyname, e.g. in the make node)
        * type -->
   <param>
-    <name>samp_rate</name>
+    <name>Sample Rate</name>
     <key>samp_rate</key>
     <value>samp_rate</value>
     <type>int</type>
@@ -25,8 +25,8 @@
   </param>
 
   <param>
-    <name>Postamble Count</name>
-    <key>postamble_count</key>
+    <name>Flag Count</name>
+    <key>flag_count</key>
     <value>5</value>
     <type>int</type>
   </param>

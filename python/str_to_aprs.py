@@ -25,13 +25,19 @@ from bruninga import packet
 import pmt
 import pickle
 
-class aprs_gen(gr.sync_block):
+class str_to_aprs(gr.sync_block):
     """
-    docstring for block aprs_gen
+    A block which turns messages (or short strings) into packets.
+
+    Connect to the "Socket PDU" to transmit strings received over a TCP port.
+
+    src - The callsign originating the packet ie: "KB3VOZ-1"
+    dest - Same as above
+    via - The list of digipeaters as a python array. ie: ['WIDE1-1', 'WIDE2-1']
     """
     def __init__(self, src, dest, via):
         gr.sync_block.__init__(self,
-            name="aprs_gen",
+            name="str_to_aprs",
             in_sig=None,
             out_sig=None)
 

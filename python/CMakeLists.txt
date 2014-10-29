@@ -32,8 +32,8 @@ GR_PYTHON_INSTALL(
     FILES
     __init__.py
     packet.py
-    ax25_to_aprs.py
-    aprs_gen.py
+    hdlc_to_ax25.py
+    str_to_aprs.py
     ax25_fsk_mod.py DESTINATION ${GR_PYTHON_DIR}/bruninga
 )
 
@@ -44,4 +44,4 @@ include(GrTest)
 
 set(GR_TEST_TARGET_DEPS gnuradio-bruninga)
 set(GR_TEST_PYTHON_DIRS ${CMAKE_BINARY_DIR}/swig)
-GR_ADD_TEST(qa_ax25_to_aprs ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_ax25_to_aprs.py)
+#GR_ADD_TEST(qa_hdlc_to_ax25 ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_hdlc_to_ax25.py)

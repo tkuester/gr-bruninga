@@ -1345,10 +1345,10 @@
     </param>
   </block>
   <block>
-    <key>bruninga_ax25_to_aprs</key>
+    <key>bruninga_hdlc_to_ax25</key>
     <param>
       <key>id</key>
-      <value>bruninga_ax25_to_aprs_1</value>
+      <value>bruninga_hdlc_to_ax25_1</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -2329,7 +2329,7 @@
   </connection>
   <connection>
     <source_block_id>digital_hdlc_deframer_bp_0</source_block_id>
-    <sink_block_id>bruninga_ax25_to_aprs_1</sink_block_id>
+    <sink_block_id>bruninga_hdlc_to_ax25_1</sink_block_id>
     <source_key>out</source_key>
     <sink_key>in</sink_key>
   </connection>

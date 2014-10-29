@@ -32,8 +32,8 @@ except ImportError:
 
 # import any pure python here
 
-from ax25_to_aprs import ax25_to_aprs
-from aprs_gen import aprs_gen
+from hdlc_to_ax25 import hdlc_to_ax25
+from str_to_aprs import str_to_aprs
 from ax25_fsk_mod import ax25_fsk_mod
 
 import packet

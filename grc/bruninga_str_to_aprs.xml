@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <block>
-  <name>aprs_gen</name>
-  <key>bruninga_aprs_gen</key>
+  <name>String to APRS</name>
+  <key>bruninga_str_to_aprs</key>
   <category>bruninga</category>
   <import>import bruninga</import>
-  <make>bruninga.aprs_gen($src, $dest, $via)</make>
+  <make>bruninga.str_to_aprs($src, $dest, $via)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name

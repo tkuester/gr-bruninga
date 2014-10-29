@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <block>
   <name>HDLC to AX25</name>
-  <key>bruninga_ax25_to_aprs</key>
+  <key>bruninga_hdlc_to_ax25</key>
   <category>bruninga</category>
   <import>import bruninga</import>
-  <make>bruninga.ax25_to_aprs()</make>
+  <make>bruninga.hdlc_to_ax25()</make>
   <!-- Make one 'sink' node per input. Sub-nodes:
        * name (an identifier for the GUI)
        * type

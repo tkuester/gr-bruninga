@@ -218,10 +218,10 @@
     </param>
   </block>
   <block>
-    <key>bruninga_aprs_gen</key>
+    <key>bruninga_str_to_aprs</key>
     <param>
       <key>id</key>
-      <value>bruninga_aprs_gen_0</value>
+      <value>bruninga_str_to_aprs_0</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -809,7 +809,7 @@
   </block>
   <connection>
     <source_block_id>blocks_socket_pdu_0</source_block_id>
-    <sink_block_id>bruninga_aprs_gen_0</sink_block_id>
+    <sink_block_id>bruninga_str_to_aprs_0</sink_block_id>
     <source_key>pdus</source_key>
     <sink_key>in</sink_key>
   </connection>
@@ -821,12 +821,12 @@
   </connection>
   <connection>
     <source_block_id>blocks_message_strobe_0</source_block_id>
-    <sink_block_id>bruninga_aprs_gen_0</sink_block_id>
+    <sink_block_id>bruninga_str_to_aprs_0</sink_block_id>
     <source_key>strobe</source_key>
     <sink_key>in</sink_key>
   </connection>
   <connection>
-    <source_block_id>bruninga_aprs_gen_0</source_block_id>
+    <source_block_id>bruninga_str_to_aprs_0</source_block_id>
     <sink_block_id>rational_resampler_xxx_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>

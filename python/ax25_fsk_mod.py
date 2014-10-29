@@ -32,7 +32,17 @@ import pmt
 
 class ax25_fsk_mod(gr.sync_block):
     """
-    docstring for block ax25_fsk_mod
+    A continuous phase FSK modulator for AX25 packets.
+    
+    When given an AX25 Packet, this block converts it to an audio stream with
+    the given configured parameters. Two in question:
+
+    - Flag Count: How many flags to put before and after the packet
+    - Preamble Len (ms): How long to transmit a clock signal (01010101)
+
+    The default values for the mark, space, and baud rate are configurable to
+    allow for further experimentation. v.23 modems, for example, use 1300/2100
+    tones to generate 1200 baud signals.
     """
     def __init__(self, samp_rate, preamble_len_ms, flag_count, mark_freq,
             space_freq, baud_rate):
@@ -50,8 +60,6 @@ class ax25_fsk_mod(gr.sync_block):
 
         self.preamble_len_bits = int((preamble_len_ms / 1000.0) * baud_rate / 2)
         self.sps = int(1.0 * self.samp_rate / self.baud_rate)
-
-        #print 'SPS:', self.sps
 
         self.outbox = Queue.Queue()
         self.output_buffer = None
@@ -113,12 +121,13 @@ class ax25_fsk_mod(gr.sync_block):
         # TODO: Transmit cooldown period
         if self.output_buffer is None:
             if self.outbox.empty():
+                # TODO: This is a bit of a hack to work around the ALSA Audio
+                #       Sink being unhappy with underflows
                 out[0:] = 0
                 return len(out)
 
             self.output_buffer = self.ax25_to_fsk(self.outbox.get())
             self.opb_idx = 0
-            #print 'New packet (%d samples)' % len(self.output_buffer)
 
         # How many samples do we have left for each buffer?
         opb_left = len(self.output_buffer) - self.opb_idx
@@ -129,20 +138,17 @@ class ax25_fsk_mod(gr.sync_block):
         out[idx:idx+cnt] = self.output_buffer[self.opb_idx:self.opb_idx+cnt]
 
         # Update counters
-        #print 'Wrote %d/%d samples from offset %d' % (cnt, len(out), self.opb_idx)
         idx += cnt
         self.opb_idx += cnt
 
         # If we run out of samples in the output buffer, we're done
         if self.opb_idx >= len(self.output_buffer):
-            #print 'Done with message (%d == %d)' % (self.opb_idx, len(self.output_buffer))
             self.output_buffer = None
 
         # Fill the remaining buffer with zeros. Hack to help the ALSA audio sink
         # be happy.
         if idx < len(out):
             out[idx:] = 0
-            #print 'Filling remaining %d samples with 0' % len(out[idx:])
 
         return len(out)
 

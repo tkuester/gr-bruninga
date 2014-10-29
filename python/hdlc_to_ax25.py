@@ -28,9 +28,7 @@ from datetime import datetime
 
 from . import packet
 
-# TODO: Rename this to hdlc_to_ax25
-
-class ax25_to_aprs(gr.sync_block):
+class hdlc_to_ax25(gr.sync_block):
     """
     Converts an array of bytes into a AX25Packet object.
 
@@ -48,7 +46,7 @@ class ax25_to_aprs(gr.sync_block):
     """
     def __init__(self):
         gr.sync_block.__init__(self,
-                               name="ax25_to_aprs",
+                               name="hdlc_to_ax25",
                                in_sig=None,
                                out_sig=None)
 

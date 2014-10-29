@@ -113,7 +113,6 @@ class AX25Packet(object):
         return bytearray(struct.pack('<H', (crc ^ 0xffff)))
 
     def hdlc_wrap(self, preamble_count=1, trailer_count=1):
-        # TODO: Add clock recovery at beginning
         out = ''
         pkt = self.to_bytes()
         csum = self.checksum()
@@ -130,15 +129,17 @@ class AX25Packet(object):
         unstuffed = out
         stuffed = ''
         
-        # Bit stuffing
         one_count = 0
         for bit in unstuffed:
             stuffed += bit
+
+            # Keep a count of the number of subsequent 1's in a row
             if bit == '1':
                 one_count += 1
             else:
                 one_count = 0
 
+            # If we hit 5 1's in a row, stuff a bit, and clear the counter
             if one_count == 5:
                 stuffed += '0'
                 one_count = 0
@@ -146,8 +147,8 @@ class AX25Packet(object):
         out = stuffed
 
         # Preamble
-        out = ('01111110' * preamble_count) + out
-        out += ('01111110' * trailer_count)
+        out = ('1111110' * preamble_count) + out
+        out += ('0111111' * trailer_count)
 
         # Invert data, differentially encode
         out = [1 if c == '0' else 0 for c in out]
@@ -188,6 +189,7 @@ def bytes_to_address(array):
     return (last, addr)
 
 def string_to_address(string):
+    ''' Converts a string (like "KB3VOZ -2") into an Address object '''
     if '-' in string:
         try:
             (cs, ssid) = src.split('-')
@@ -222,11 +224,13 @@ def from_bytes(array, extended=False):
 
     packet = AX25Packet()
 
+    # Pull out the destination and source from the packet
     (last, packet.dest) = bytes_to_address(array[0:7])
     if(last):
         raise ValueError("Unexpected stop of address section")
     (last, packet.src) = bytes_to_address(array[7:14])
 
+    # Pull out each repeater
     offset = 2 * 7
     while not last:
         addr = array[offset:offset+7]
@@ -247,10 +251,13 @@ def from_bytes(array, extended=False):
         packet.control = array[offset]
         offset += 1
 
+        # We'll pull these fields here, but not all frames contain
+        # this information. 
         packet.recv_seq = packet.control >> 5
         packet.pf_bit = (packet.control & 0x10) == 0x10
         packet.send_seq = (packet.control & 0x0c) >> 2
 
+        # Determine the frame type, and fill / clear additonal fields
         if (packet.control & 0x01) == 0x00:
             packet.frame_type = 'I'
         elif (packet.control & 0x03) == 0x01:
@@ -272,7 +279,8 @@ def from_bytes(array, extended=False):
     else:
         raise NotImplementedError("Extended control field not implemented yet!")
 
-    # I and UI frames contain PID bytes
+    # I and UI frames contain the protocol ID byte 
+    # (ie: first byte of info segment)
     if packet.frame_type in ['I', 'UI']:
         if offset >= len(array):
             raise ValueError("Not enough bytes left for protocol_id")
@@ -287,7 +295,7 @@ def from_bytes(array, extended=False):
     
 def dump(packet):
     '''
-    Returns a string representing the packet.
+    Returns a string representing the packet in TNC-2 format
 
     Format:
         SRC>DEST,RPT1,RPT2:INFO
