@@ -53,7 +53,7 @@ class hdlc_to_ax25(gr.sync_block):
         (self.pty_master, self.pty_slave) = pty.openpty()
         tty = os.ttyname(self.pty_slave)
 
-        if os.path.exists('/tmp/kiss_pty'):
+        if os.path.islink('/tmp/kiss_pty'):
             os.unlink('/tmp/kiss_pty')
         os.symlink(tty, '/tmp/kiss_pty')
 
