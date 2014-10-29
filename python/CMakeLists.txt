@@ -34,7 +34,8 @@ GR_PYTHON_INSTALL(
     packet.py
     hdlc_to_ax25.py
     str_to_aprs.py
-    ax25_fsk_mod.py DESTINATION ${GR_PYTHON_DIR}/bruninga
+    ax25_fsk_mod.py
+    fsk_demod.py DESTINATION ${GR_PYTHON_DIR}/bruninga
 )
 
 ########################################################################

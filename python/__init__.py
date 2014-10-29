@@ -35,6 +35,7 @@ except ImportError:
 from hdlc_to_ax25 import hdlc_to_ax25
 from str_to_aprs import str_to_aprs
 from ax25_fsk_mod import ax25_fsk_mod
+from fsk_demod import fsk_demod
 
 import packet
 
