@@ -192,7 +192,7 @@ def string_to_address(string):
     ''' Converts a string (like "KB3VOZ -2") into an Address object '''
     if '-' in string:
         try:
-            (cs, ssid) = src.split('-')
+            (cs, ssid) = string.split('-')
             ssid = int(ssid)
         except ValueError:
             raise ValueError("Bad callsign format")
