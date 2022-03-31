@@ -17,9 +17,9 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 install(FILES
-    bruninga_hdlc_to_ax25.xml
-    bruninga_direwolf_agc.xml
-    bruninga_str_to_aprs.xml
-    bruninga_ax25_fsk_mod.xml
-    bruninga_fsk_demod.xml DESTINATION share/gnuradio/grc/blocks
+    bruninga_hdlc_to_ax25.block.yml
+    bruninga_direwolf_agc.block.yml
+    bruninga_str_to_aprs.block.yml
+    bruninga_ax25_fsk_mod.block.yml
+    bruninga_fsk_demod.block.yml DESTINATION share/gnuradio/grc/blocks
 )
