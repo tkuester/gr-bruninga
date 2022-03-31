@@ -1,6 +1,0 @@
-build
-*.pyc
-*.swp
-top_block.py
-.unittests
-examples/*.py

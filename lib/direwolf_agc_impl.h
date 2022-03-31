@@ -21,7 +21,7 @@
 #ifndef INCLUDED_BRUNINGA_DIREWOLF_AGC_IMPL_H
 #define INCLUDED_BRUNINGA_DIREWOLF_AGC_IMPL_H
 
-#include <bruninga/direwolf_agc.h>
+#include <gnuradio/bruninga/direwolf_agc.h>
 
 namespace gr {
   namespace bruninga {
